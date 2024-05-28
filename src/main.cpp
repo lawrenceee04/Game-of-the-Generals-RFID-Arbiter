@@ -3,30 +3,102 @@
 
 #define RST_PIN         D3
 #define SS_PIN          D8
+#define NO_OF_PIECES    21
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
-// Define the hierarchy of the pieces
 enum PieceRank {
-  PRIVATE,
   SPY,
+  PRIVATE,
+  SERGEANT,
+  LIEUTENANT_2ND,
+  LIEUTENANT_1ST,
+  CAPTAIN,
+  MAJOR,
+  LT_COLONEL,
+  COLONEL,
+  GENERAL_ONE,
+  GENERAL_TWO,
+  GENERAL_THREE,
+  GENERAL_FOUR,
   GENERAL_FIVE,
-  // Add other ranks here...
+  FLAG
 };
 
 // Define the UIDs and their ranks
-byte pieceUids[][4] = {
-  {0x65, 0x3A, 0xFC, 0xA9},
-  {0x1B, 0x15, 0xFD, 0xA9},
-  {0x99, 0x4C, 0xFC, 0xA9},
-  // Add other UIDs here...
+byte whitePiece[21][4] = {
+	{0x1B, 0x15, 0xFD, 0xA9},
+	{0x34, 0x56, 0x78, 0x9A},
+	{0x12, 0x24, 0x56, 0x78},
+	{0xAB, 0xCD, 0xEF, 0x01},
+	{0x98, 0x76, 0x54, 0x32},
+	{0xFE, 0xDC, 0xBA, 0x09},
+	{0x11, 0x22, 0x33, 0x44},
+	{0x55, 0x66, 0x77, 0x88},
+	{0x99, 0xAA, 0xBB, 0xCC},
+	{0xDD, 0xEE, 0xFF, 0x00},
+	{0x12, 0x35, 0x56, 0x78},
+	{0x4B, 0xCD, 0xEF, 0x01},
+	{0x18, 0x76, 0x54, 0x32},
+	{0xF3, 0xDC, 0xBA, 0x09},
+	{0x19, 0x22, 0x33, 0x44},
+	{0x55, 0x66, 0x79, 0x88},
+	{0x99, 0xAA, 0xBB, 0xC1},
+	{0xD3, 0xEE, 0xFF, 0x00},
+	{0x12, 0x32, 0x56, 0x78},
+	{0xAB, 0xC4, 0xEF, 0x01},
+	{0x65, 0x3A, 0xFC, 0xA9}
+	// Add other UIDs here...
 };
 
-PieceRank pieceRanks[] = {
-  PRIVATE,
+byte blackPiece[21][4] = {
+	{0x86, 0x18, 0xFC, 0xA9},
+	{0x34, 0x56, 0x78, 0x9A},
+	{0x12, 0x24, 0x56, 0x78},
+	{0xAB, 0xCD, 0xEF, 0x01},
+	{0x98, 0x76, 0x54, 0x32},
+	{0xFE, 0xDC, 0xBA, 0x09},
+	{0x11, 0x22, 0x33, 0x44},
+	{0x55, 0x66, 0x77, 0x88},
+	{0x99, 0xAA, 0xBB, 0xCC},
+	{0xDD, 0xEE, 0xFF, 0x00},
+	{0x12, 0x35, 0x56, 0x78},
+	{0x4B, 0xCD, 0xEF, 0x01},
+	{0x18, 0x76, 0x54, 0x32},
+	{0xF3, 0xDC, 0xBA, 0x09},
+	{0x19, 0x22, 0x33, 0x44},
+	{0x55, 0x66, 0x79, 0x88},
+	{0x99, 0xAA, 0xBB, 0xC1},
+	{0xD3, 0xEE, 0xFF, 0x00},
+	{0x12, 0x32, 0x56, 0x78},
+	{0xAB, 0xC4, 0xEF, 0x01},
+	{0x99, 0x4C, 0xFC, 0xA9},
+	// Add other UIDs here...
+};
+
+
+PieceRank pieceRanks[21] = {
   SPY,
+  SPY,
+  PRIVATE,
+  PRIVATE,
+  PRIVATE,
+  PRIVATE,
+  PRIVATE,
+  PRIVATE,
+  SERGEANT,
+  LIEUTENANT_2ND,
+  LIEUTENANT_1ST,
+  CAPTAIN,
+  MAJOR,
+  LT_COLONEL,
+  COLONEL,
+  GENERAL_ONE,
+  GENERAL_TWO,
+  GENERAL_THREE,
+  GENERAL_FOUR,
   GENERAL_FIVE,
-  // Add other ranks here...
+  FLAG
 };
 
 void setup() {
@@ -50,13 +122,20 @@ void loop() {
   mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
 
   // Get the rank of the current piece
-  PieceRank currentRank = PRIVATE; // Default rank
-  for (int i = 0; i < 3; i++) {
-    if (memcmp(mfrc522.uid.uidByte, pieceUids[i], 4) == 0) {
-      currentRank = pieceRanks[i];
+  PieceRank whitePieceRank = FLAG;
+  PieceRank blackPieceRank = FLAG;
+  int firstScannedPiece = 0; // 1 for white, 2 for black
+  for (int i = 0; i < NO_OF_PIECES; i++) {
+    if (memcmp(mfrc522.uid.uidByte, whitePiece[i], 4) == 0) {
+      whitePieceRank = pieceRanks[i];
+	  firstScannedPiece = 1;
       break;
-    }
-  }
+    } else if (memcmp(mfrc522.uid.uidByte, blackPiece[i], 4) == 0) {
+	  blackPieceRank = pieceRanks[i];
+	  firstScannedPiece = 2;
+	  break;
+	}
+  };
 
   // Wait for a second card
   while ( ! mfrc522.PICC_IsNewCardPresent()) {
@@ -72,24 +151,33 @@ void loop() {
   mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
 
   // Get the rank of the second piece
-  PieceRank secondRank = PRIVATE; // Default rank
-  for (int i = 0; i < 3; i++) {
-    if (memcmp(mfrc522.uid.uidByte, pieceUids[i], 4) == 0) {
-      secondRank = pieceRanks[i];
+  for (int i = 0; i < NO_OF_PIECES; i++) {
+    if (memcmp(mfrc522.uid.uidByte, whitePiece[i], 4) == 0) {
+      whitePieceRank = pieceRanks[i];
+	  firstScannedPiece = 1;
       break;
-    }
+    } else if (memcmp(mfrc522.uid.uidByte, blackPiece[i], 4) == 0) {
+	  blackPieceRank = pieceRanks[i];
+	  firstScannedPiece = 2;
+	  break;
+	}
   };
 
   // Compare the ranks of the pieces
-  if (currentRank == SPY && secondRank != PRIVATE) {
-    Serial.println(F("First piece (Spy) kills second piece."));
-  } else if (secondRank == SPY && currentRank != PRIVATE) {
-    Serial.println(F("Second piece (Spy) kills first piece."));
-  } else if (currentRank > secondRank) {
-    Serial.println(F("First piece kills second piece."));
-  } else if (secondRank > currentRank) {
-    Serial.println(F("Second piece kills first piece."));
+  if (whitePieceRank == SPY && blackPieceRank == PRIVATE) {
+    Serial.println("BLACK piece wins.");
+  } else if (blackPieceRank == SPY && whitePieceRank == PRIVATE) {
+    Serial.println("WHITE piece wins.");
+// Flag is captured
+  } else if (firstScannedPiece == 2 && whitePieceRank == FLAG && blackPieceRank == FLAG) {
+	Serial.println("WHITE piece wins, black's flag is captured.");
+  } else if (firstScannedPiece == 1 && blackPieceRank == FLAG && whitePieceRank == FLAG) {
+	Serial.println("BLACK piece wins, white's flag is captured.");
+  } else if (whitePieceRank > blackPieceRank) {
+    Serial.println("WHITE piece wins.");
+  } else if (blackPieceRank > whitePieceRank) {
+    Serial.println("BLACK piece wins.");
   } else {
-    Serial.println(F("Both pieces are of the same rank. No piece is killed."));
+    Serial.println("BOTH piece lose.");
   }
 }
