@@ -3,34 +3,9 @@
 
 #define RST_PIN         D3        // Configurable, see typical pin layout above
 #define SS_PIN          D8        // Configurable, see typical pin layout above
-#define NO_OF_PIECES    21        
-// #define RESET_BUTTON    2
-#define RED_RGB_LED     6         // Configurable, see typical pin layout above
-#define GREEN_RGB_LED   5         // Configurable, see typical pin layout above
-#define BLUE_RGB_LED    3         // Configurable, see typical pin layout above
+#define NO_OF_PIECES    21
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-
-void ledWinnerIndicator(int whoWon = 0) {
-  switch (whoWon)
-  {
-  case 1:
-    analogWrite(GREEN_RGB_LED, 255);
-    delay(1500);
-    analogWrite(GREEN_RGB_LED, 0);
-    break;
-  case 2:
-    analogWrite(RED_RGB_LED, 255);
-    delay(1500);
-    analogWrite(RED_RGB_LED, 0);
-    break;
-  default:
-    analogWrite(BLUE_RGB_LED, 255);
-    delay(1500);
-    analogWrite(BLUE_RGB_LED, 0);
-    break;
-  }
-}
 
 enum PieceRank {
   FLAG,
@@ -50,7 +25,8 @@ enum PieceRank {
   GENERAL_FIVE,
 };
 
-// Define the UIDs and their ranks
+// Use dumpinfo to get the UIDs of the pieces and arrange them according to the pieceRanks array
+// For example the index 0 of the whitePiece array should be the UID of the FLAG piece
 byte whitePiece[21][4] = {
   {0x65, 0x3A, 0xFC, 0xA9},
 	{0x1B, 0x15, 0xFD, 0xA9},
@@ -73,7 +49,6 @@ byte whitePiece[21][4] = {
 	{0xD3, 0xEE, 0xFF, 0x00},
 	{0x12, 0x32, 0x56, 0x78},
 	{0xAB, 0xC4, 0xEF, 0x01}
-	// Add other UIDs here...
 };
 
 byte blackPiece[21][4] = {
@@ -98,9 +73,7 @@ byte blackPiece[21][4] = {
 	{0xD3, 0xEE, 0xFF, 0x00},
 	{0x12, 0x32, 0x56, 0x78},
 	{0xAB, 0xC4, 0xEF, 0x01}
-	// Add other UIDs here...
 };
-
 
 PieceRank pieceRanks[21] = {
   FLAG,
@@ -126,8 +99,6 @@ PieceRank pieceRanks[21] = {
   GENERAL_FIVE
 };
 
-// void ISR_Button();
-
 void setup() {
   Serial.begin(9600); // Initialize serial communication at 9600 baud
   SPI.begin();        // Init SPI bus
@@ -135,7 +106,7 @@ void setup() {
 }
 
 void loop() {
-    // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
+  // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
   if ( ! mfrc522.PICC_IsNewCardPresent()) {
     return;
   }
@@ -193,25 +164,18 @@ void loop() {
   // Compare the ranks of the pieces
   if (whitePieceRank == SPY && blackPieceRank == PRIVATE) {
     Serial.println("BLACK piece wins.");
-    ledWinnerIndicator(2);
   } else if (blackPieceRank == SPY && whitePieceRank == PRIVATE) {
     Serial.println("WHITE piece wins.");
-    ledWinnerIndicator(1);
   // If a flag is captured
   } else if (firstScannedPiece == 2 && whitePieceRank == FLAG && blackPieceRank == FLAG) {
     Serial.println("WHITE piece wins, black's flag is captured.");
-    ledWinnerIndicator(2);
   } else if (firstScannedPiece == 1 && whitePieceRank == FLAG && blackPieceRank == FLAG) {
     Serial.println("BLACK piece wins, white's flag is captured.");
-    ledWinnerIndicator(1);
   } else if (whitePieceRank > blackPieceRank) {
     Serial.println("WHITE piece wins.");
-    ledWinnerIndicator(1);
   } else if (blackPieceRank > whitePieceRank) {
     Serial.println("BLACK piece wins.");
-    ledWinnerIndicator(2);
   } else {
     Serial.println("BOTH piece lose.");
-    ledWinnerIndicator();
   }
 }
