@@ -1,6 +1,17 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
+// Typical pin layout used:
+// ----------------------------------------------------
+//             MFRC522      NodeMCU      NodeMCU       
+//             Reader/PCD   GPIO         Name              
+// ----------------------------------------------------
+// RST/Reset    RST          D3           RX           
+// SPI SS       SDA(SS)      D8           D8            
+// SPI MOSI     MOSI         D7           TX           
+// SPI MISO     MISO         D6           RX       
+// SPI SCK      SCK          D5           SCK      
+
 #define RST_PIN         D3        // Configurable, see typical pin layout above
 #define SS_PIN          D8        // Configurable, see typical pin layout above
 #define NO_OF_PIECES    21
