@@ -14,9 +14,11 @@ An arbiter with the use of RFID stickers placed on each piece, along with an RFI
 
 Open PlatformIO Extension on VSCode, then create new project. Type a name, then you can pick any board that also uses Arduino Framework. However, not guaranteed to work on all arduino boards. Click finish.
 
-After that, make sure you are in the root directory. Delete the src folder and the platformio.ini, as it will be overwritten later in a command prompt in VSCode by clicking Ctrl + \`.
+After that, make sure you are in the root directory. Delete the src folder and the platformio.ini, as it will be overwritten later in a command prompt in VSCode by clicking ``` Ctrl + ` ``` or opening the terminal in VScode.
 
-Then type ` git clone https://github.com/lawrenceee04/Game-of-the-Generals-RFID-Arbiter.git `
+Then type 
+
+``` git clone https://github.com/lawrenceee04/Game-of-the-Generals-RFID-Arbiter.git ```
 
 Now you can upload the program into your NodeMCU ESP8266.
 
